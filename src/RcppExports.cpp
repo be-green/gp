@@ -12,27 +12,28 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // consumption_path
-//' @param x cash on hand grid //' @param sigma_n standard deviation of log permanent income //' @param sigma_u standard deviation of log transitory income //' @param gamma_0 intercept of retirement MPC //' @param gamma_1 slope of retirement MPC in cash on hand //' @param R risk free rate //' @param G permanent income growth rate //' @param T number of years //' @param beta time discount factor //' @export arma::mat consumption_path(arma::vec x, double sigma_n, double sigma_u, double gamma_0, double gamma_1, double R, double G, double p_noinc, double beta                            int T);
-RcppExport SEXP _gp_consumption_path(SEXP xSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP gamma_0SEXP, SEXP gamma_1SEXP, SEXP RSEXP, SEXP GSEXP, SEXP p_noincSEXP, SEXP TSEXP) {
+arma::mat consumption_path(arma::vec x, arma::vec G, double sigma_n, double sigma_u, double gamma_0, double gamma_1, double R, double p_noinc, double beta, double rho);
+RcppExport SEXP _gp_consumption_path(SEXP xSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP gamma_0SEXP, SEXP gamma_1SEXP, SEXP RSEXP, SEXP p_noincSEXP, SEXP betaSEXP, SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type G(GSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_n(sigma_nSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_u(sigma_uSEXP);
     Rcpp::traits::input_parameter< double >::type gamma_0(gamma_0SEXP);
     Rcpp::traits::input_parameter< double >::type gamma_1(gamma_1SEXP);
     Rcpp::traits::input_parameter< double >::type R(RSEXP);
-    Rcpp::traits::input_parameter< double >::type G(GSEXP);
     Rcpp::traits::input_parameter< double >::type p_noinc(p_noincSEXP);
-    Rcpp::traits::input_parameter< double beta                            int >::type T(TSEXP);
-    rcpp_result_gen = Rcpp::wrap(consumption_path(x, sigma_n, sigma_u, gamma_0, gamma_1, R, G, p_noinc, T));
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
+    rcpp_result_gen = Rcpp::wrap(consumption_path(x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_gp_consumption_path", (DL_FUNC) &_gp_consumption_path, 9},
+    {"_gp_consumption_path", (DL_FUNC) &_gp_consumption_path, 10},
     {NULL, NULL, 0}
 };
 

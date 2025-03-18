@@ -9,7 +9,8 @@ using namespace Rcpp;
 //' @param intervals matrix of intervals to search over
 //' @param tol tolerance for what is equivalent to zero
 //' @param max_iter max number of iterations
-//' @details Binary search (bisection) to find a root of f in the interval [a, b]
+//' @details Binary search (bisection) to find a
+//' root of f in the interval [a, b]
 //' for a vector
 arma::vec find_roots(std::function<arma::vec(arma::vec)>& f,
                      arma::vec a,
@@ -53,7 +54,7 @@ arma::vec find_roots(std::function<arma::vec(arma::vec)>& f,
 //' @param z input parameter to linearly interpolate the x coordinates
 //' @param c output vector to weight based on the input
 //' @details Returns a matrix of linearly interpolated values
-// [[Rcpp::export]]
+//' @export
 arma::mat linterp(arma::mat x, const arma::vec& z, const arma::vec& c) {
  // Ensure both vectors have the same size and contain at least two points.
  if (z.n_elem != c.n_elem) {
@@ -102,15 +103,15 @@ arma::mat linterp(arma::mat x, const arma::vec& z, const arma::vec& c) {
  return y;
 }
 
- //' Computes the 2D Gaussian quadrature rule of order 12
- //' @param mu_n mean of permanent shocks
- //' @param sigma sd of permanent shocks
- //' @param mu_u mean of temp shocks
- //' @param sigma_u sd of temp shocks
- void gh_quadrature(double mu_n, double sigma_n,
-                    double mu_u, double sigma_u,
-                    arma::mat& nodes2D,
-                    arma::vec& weights2D) {
+//' Computes the 2D Gaussian quadrature rule of order 12
+//' @param mu_n mean of permanent shocks
+//' @param sigma sd of permanent shocks
+//' @param mu_u mean of temp shocks
+//' @param sigma_u sd of temp shocks
+void gh_quadrature(double mu_n, double sigma_n,
+                  double mu_u, double sigma_u,
+                  arma::mat& nodes2D,
+                  arma::vec& weights2D) {
 
    // nodes and weights for quadrature of order 12
    // see, e.g. https://www.efunda.com/math/num_integration/findgausshermite.cfm
@@ -163,7 +164,18 @@ arma::mat u_prime(arma::mat c, double rho) {
 
 //' Computes difference between expected marginal utility and
 //' current marginal utility
-// [[Rcpp::export]]
+//' @param c_now current consumption
+//' @param x current cash on hand
+//' @param c_next proposed next consumption
+//' @param const_scale_coh cash on hand scale param (see paper)
+//' @param const_add_coh cash on hand addition param (see paper)
+//' @param const_scale_consump consumption scale param (see paper)
+//' @param weights Weights for weighted average from Gauss-Hermite
+//' quadrature
+//' @param R risk free rate
+//' @param p_noinc probability of income equal to 0
+//' @param beta discount factor
+//' @param rho CRRA risk aversion parameter
 arma::vec net_euler_diff(arma::vec c_now,
                          arma::vec x,
                          arma::vec c_next,
@@ -205,7 +217,6 @@ arma::vec net_euler_diff(arma::vec c_now,
   return euler_diff;
 }
 
-// [[Rcpp::export]]
 //' Find roots of Euler Equation
 //' @param c_now this period's consumption
 //' @param c_tp1 next period's consumption
@@ -215,6 +226,7 @@ arma::vec net_euler_diff(arma::vec c_now,
 //' @param sigma_n sd of log permanent income
 //' @param sigma_u sd of log temp. income
 //' @param beta time discount factor
+//' @export
 arma::vec solve_euler(arma::vec c_next_grid,
                       arma::vec x,
                       double R,
@@ -262,7 +274,7 @@ arma::vec solve_euler(arma::vec c_next_grid,
   return c_now;
 }
 
-// [[Rcpp::export]]
+//' Get full consumption rule
 //' @param x cash on hand grid
 //' @param sigma_n standard deviation of log permanent income
 //' @param sigma_u standard deviation of log transitory income
@@ -273,6 +285,7 @@ arma::vec solve_euler(arma::vec c_next_grid,
 //' @param T number of years
 //' @param beta time discount factor
 //' @export
+// [[Rcpp::export]]
 arma::mat consumption_path(arma::vec x,
                            arma::vec G,
                            double sigma_n,
@@ -307,3 +320,28 @@ arma::mat consumption_path(arma::vec x,
  }
  return c;
 }
+
+//' Compute consumption given rule, age, cash on hand
+//' @param x cash on hand
+//' @param a age - 25, an integer corresponding to the column
+//' of the consumption rule matrix
+//' @param a_grid vector of possible ages
+//' @param x_grid grid of possible cash on hand values
+//' @param consumption_rule grid of solved consumption
+double consumption(const arma::vec x,
+                   const int a,
+                   const arma::vec& a_grid,
+                   const arma::vec& x_grid,
+                   const arma::mat& consumption_rule) {
+
+  c_vec = consumption_rule.col(a);
+  c = linterp(x_grid, c_vec, x);
+  return c;
+}
+
+//' Simulate path given assets
+//' @param start_assets assets at the beginning of life (25)
+//' @param x cash on hand grid
+//'
+
+

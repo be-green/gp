@@ -15,3 +15,5 @@ LinkingTo:
     RcppArmadillo
 Imports: 
     Rcpp
+Depends: 
+    R (>= 3.5)
