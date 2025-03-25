@@ -11,6 +11,54 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// gh_quadrature
+void gh_quadrature(double mu_n, double sigma_n, double mu_u, double sigma_u, arma::mat& nodes2D, arma::vec& weights2D);
+RcppExport SEXP _gp_gh_quadrature(SEXP mu_nSEXP, SEXP sigma_nSEXP, SEXP mu_uSEXP, SEXP sigma_uSEXP, SEXP nodes2DSEXP, SEXP weights2DSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type mu_n(mu_nSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma_n(sigma_nSEXP);
+    Rcpp::traits::input_parameter< double >::type mu_u(mu_uSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma_u(sigma_uSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type nodes2D(nodes2DSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type weights2D(weights2DSEXP);
+    gh_quadrature(mu_n, sigma_n, mu_u, sigma_u, nodes2D, weights2D);
+    return R_NilValue;
+END_RCPP
+}
+// net_euler_diff
+arma::vec net_euler_diff(arma::vec c_now, arma::vec x, arma::vec c_next, arma::mat const_scale_coh, arma::mat const_add_coh, arma::mat const_scale_consump, arma::vec weights, double R, double p_noinc, double beta, double rho);
+RcppExport SEXP _gp_net_euler_diff(SEXP c_nowSEXP, SEXP xSEXP, SEXP c_nextSEXP, SEXP const_scale_cohSEXP, SEXP const_add_cohSEXP, SEXP const_scale_consumpSEXP, SEXP weightsSEXP, SEXP RSEXP, SEXP p_noincSEXP, SEXP betaSEXP, SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type c_now(c_nowSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type c_next(c_nextSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type const_scale_coh(const_scale_cohSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type const_add_coh(const_add_cohSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type const_scale_consump(const_scale_consumpSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< double >::type R(RSEXP);
+    Rcpp::traits::input_parameter< double >::type p_noinc(p_noincSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
+    rcpp_result_gen = Rcpp::wrap(net_euler_diff(c_now, x, c_next, const_scale_coh, const_add_coh, const_scale_consump, weights, R, p_noinc, beta, rho));
+    return rcpp_result_gen;
+END_RCPP
+}
+// nw
+Rcpp::List nw(double sigma_n, double sigma_u);
+RcppExport SEXP _gp_nw(SEXP sigma_nSEXP, SEXP sigma_uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type sigma_n(sigma_nSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma_u(sigma_uSEXP);
+    rcpp_result_gen = Rcpp::wrap(nw(sigma_n, sigma_u));
+    return rcpp_result_gen;
+END_RCPP
+}
 // consumption_path
 arma::mat consumption_path(arma::vec x, arma::vec G, double sigma_n, double sigma_u, double gamma_0, double gamma_1, double R, double p_noinc, double beta, double rho);
 RcppExport SEXP _gp_consumption_path(SEXP xSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP gamma_0SEXP, SEXP gamma_1SEXP, SEXP RSEXP, SEXP p_noincSEXP, SEXP betaSEXP, SEXP rhoSEXP) {
@@ -31,9 +79,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sim_assets
+arma::vec sim_assets(int N, double mu, double sigma);
+RcppExport SEXP _gp_sim_assets(SEXP NSEXP, SEXP muSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type N(NSEXP);
+    Rcpp::traits::input_parameter< double >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(sim_assets(N, mu, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_gp_gh_quadrature", (DL_FUNC) &_gp_gh_quadrature, 6},
+    {"_gp_net_euler_diff", (DL_FUNC) &_gp_net_euler_diff, 11},
+    {"_gp_nw", (DL_FUNC) &_gp_nw, 2},
     {"_gp_consumption_path", (DL_FUNC) &_gp_consumption_path, 10},
+    {"_gp_sim_assets", (DL_FUNC) &_gp_sim_assets, 3},
     {NULL, NULL, 0}
 };
 

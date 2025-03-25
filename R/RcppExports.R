@@ -18,17 +18,32 @@ NULL
 #' @export
 NULL
 
+#' Marginal utility
+#' @param c consumption
+#' @param rho risk aversion
+NULL
+
+#' Find roots of Euler Equation
+#' @param c_now this period's consumption
+#' @param c_tp1 next period's consumption
+#' @param x cash on hand
+#' @param R risk free rate
+#' @param G growth rate of income
+#' @param sigma_n sd of log permanent income
+#' @param sigma_u sd of log temp. income
+#' @param beta time discount factor
+#' @export
+NULL
+
 #' Computes the 2D Gaussian quadrature rule of order 12
 #' @param mu_n mean of permanent shocks
 #' @param sigma sd of permanent shocks
 #' @param mu_u mean of temp shocks
 #' @param sigma_u sd of temp shocks
-NULL
-
-#' Marginal utility
-#' @param c consumption
-#' @param rho risk aversion
-NULL
+#' @export
+gh_quadrature <- function(mu_n, sigma_n, mu_u, sigma_u, nodes2D, weights2D) {
+    invisible(.Call(`_gp_gh_quadrature`, mu_n, sigma_n, mu_u, sigma_u, nodes2D, weights2D))
+}
 
 #' Computes difference between expected marginal utility and
 #' current marginal utility
@@ -44,19 +59,15 @@ NULL
 #' @param p_noinc probability of income equal to 0
 #' @param beta discount factor
 #' @param rho CRRA risk aversion parameter
-NULL
-
-#' Find roots of Euler Equation
-#' @param c_now this period's consumption
-#' @param c_tp1 next period's consumption
-#' @param x cash on hand
-#' @param R risk free rate
-#' @param G growth rate of income
-#' @param sigma_n sd of log permanent income
-#' @param sigma_u sd of log temp. income
-#' @param beta time discount factor
 #' @export
-NULL
+net_euler_diff <- function(c_now, x, c_next, const_scale_coh, const_add_coh, const_scale_consump, weights, R, p_noinc, beta, rho) {
+    .Call(`_gp_net_euler_diff`, c_now, x, c_next, const_scale_coh, const_add_coh, const_scale_consump, weights, R, p_noinc, beta, rho)
+}
+
+#' Function just for testing quadrature
+nw <- function(sigma_n, sigma_u) {
+    .Call(`_gp_nw`, sigma_n, sigma_u)
+}
 
 #' Get full consumption rule
 #' @param x cash on hand grid
@@ -71,5 +82,14 @@ NULL
 #' @export
 consumption_path <- function(x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho) {
     .Call(`_gp_consumption_path`, x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho)
+}
+
+#' Simulate N asset draws from log normal distribution
+#' @param N number of draws
+#' @param mu mean of distribution
+#' @param sigma sd of distribution
+#' @export
+sim_assets <- function(N, mu, sigma) {
+    .Call(`_gp_sim_assets`, N, mu, sigma)
 }
 
