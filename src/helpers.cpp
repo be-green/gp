@@ -55,7 +55,8 @@ arma::vec find_roots(std::function<arma::vec(arma::vec)>& f,
 //' @param c output vector to weight based on the input
 //' @details Returns a matrix of linearly interpolated values
 //' @export
-arma::mat linterp(arma::mat x, const arma::vec& z, const arma::vec& c) {
+// [[Rcpp::export]]
+arma::mat linterp(arma::mat& x, const arma::vec& z, const arma::vec& c) {
  // Ensure both vectors have the same size and contain at least two points.
  if (z.n_elem != c.n_elem) {
    throw std::invalid_argument("Vectors z and c must have the same size.");
@@ -308,8 +309,8 @@ arma::vec solve_euler(arma::vec c_next_grid,
 //' @param beta time discount factor
 //' @export
 // [[Rcpp::export]]
-arma::mat consumption_path(arma::vec x,
-                           arma::vec G,
+arma::mat consumption_rule(arma::vec& x,
+                           arma::vec& G,
                            double sigma_n,
                            double sigma_u,
                            double gamma_0,
@@ -347,7 +348,7 @@ arma::mat consumption_path(arma::vec x,
 //' @param N number of draws
 //' @param mu mean of distribution
 //' @param sigma sd of distribution
-arma::vec sim_assets(int N, double mu, double sigma) {
+arma::vec simulate_assets(int N, double mu, double sigma) {
 
   // standard normal
   arma::vec assets(N, arma::fill::randn);
@@ -386,7 +387,7 @@ arma::mat draw_bernoulli(double p, int N, int T) {
 //' @param p_noinc probably income is equal to zero
 //' @export
 // [[Rcpp::export]]
-Rcpp::List simulate_income_process(
+Rcpp::List simulate_income(
   int N,
   int T,
   arma::vec P_init, // size N
@@ -427,5 +428,120 @@ Rcpp::List simulate_income_process(
     Rcpp::Named("Y") = Y,
     Rcpp::Named("P") = P
   );
+}
+
+//' Consume out of cash on hand
+//' @param Y labor income
+//' @param A assets
+//' @param R gross return on assets
+//' @param P permanent income for scaling cash on hand
+//' @param cr optimal consumption rule
+//' solved for with consumption_rule function
+//' @details This computes consumption given income
+//' assets and return on assets by first computing cash
+//' on hand and then passing to the optimal consumption
+//' rule.
+//' @export
+// [[Rcpp::export]]
+arma::vec consume(arma::vec Y,
+                  arma::vec A,
+                  arma::vec P,
+                  arma::vec& x_grid,
+                  arma::mat& cr,
+                  int T,
+                  double R) {
+  arma::vec X = R * A + Y;
+  arma::vec x = X / P;
+  arma::vec c = linterp(x, x_grid, cr.col(T));
+  return c;
+}
+
+//' Simulate consumption / savings lifecycle problem
+//' @param N number of simulations
+//' @param T number of time periods
+//' @param G growth of permanent income
+//' @param sigma_n sd of permanent income
+//' @param sigma_u sd termporary income shocks
+//' @param mu_a average log starting assets
+//' @param sigma_a sd of log starting assets
+//' @param p_noinc probability that income is zero
+//' @param R gross return on assets
+//' @param beta time discount factor
+//' @param rho CRRA risk aversion
+//' @export
+// [[Rcpp::export]]
+arma::vec simulate_lifecycle(
+  int N,
+  int T,
+  arma::vec& x_grid
+  arma::vec& P_init, // size N
+  arma::vec& G, // size T
+  double sigma_n,
+  double sigma_u,
+  double gamma_0,
+  double gamma_1,
+  double mu_a,
+  double sigma_a,
+  double R,
+  double p_noinc,
+  double beta,
+  double rho
+) {
+
+  // consumption rule
+  arma::mat cr = consumption_rule(
+    x_grid, G,
+    sigma_n, sigma_u,
+    gamma_0, gamma_1,
+    R, p_noinc,
+    beta, rho
+  )
+
+  // simulate income realizations conditional on params
+  arma::mat income = simulate_income_process(
+    N,
+    T,
+    P_init, // size N
+    G, // size T
+    sigma_n,
+    sigma_u,
+    p_noinc
+  )
+
+  // actual income
+  arma::mat Y = income["Y"];
+
+  // permanent income
+  arma::mat P = income["P"];
+
+  // draw initial assets
+  init_assets = simulate_assets(N, mu_a, sigma_a)
+
+  // assets
+  // always lagged a period relative to income / consumption
+  arma::mat A(N, T, arma::fill::zeros);
+  A.col(0) = init_assets;
+
+  // consumption over time
+  arma::mat C(N, T, arma::fill::zeros);
+
+  for(uint t = 0; t++; t < T) {
+
+    // consumption for each period
+    C.col(t) = consume(
+      Y.col(t), A.col(t), P.col(t),
+      x_grid, cr, T, R
+    )
+    // assets we have access to next period
+    // in last period we don't need to track this
+    if(t < T - 1) {
+      A.col(t + 1) = Y.col(t) + A.col(t) * R - C.col(t)
+    }
+  }
+
+  // column means of simulated consumption
+  // this is what enters our loss function
+  arma::vec C_t = mean(C, 0);
+  return C_t;
 }
 
