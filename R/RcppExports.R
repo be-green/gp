@@ -35,6 +35,12 @@ NULL
 #' @export
 NULL
 
+#' Simulate N asset draws from log normal distribution
+#' @param N number of draws
+#' @param mu mean of distribution
+#' @param sigma sd of distribution
+NULL
+
 #' Computes the 2D Gaussian quadrature rule of order 12
 #' @param mu_n mean of permanent shocks
 #' @param sigma sd of permanent shocks
@@ -84,12 +90,24 @@ consumption_path <- function(x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noin
     .Call(`_gp_consumption_path`, x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho)
 }
 
-#' Simulate N asset draws from log normal distribution
-#' @param N number of draws
-#' @param mu mean of distribution
-#' @param sigma sd of distribution
+#' Draw a random matrix of bernoullis
+#' @param p probability of a 1
+#' @param N number of rows
+#' @param T number of cols
 #' @export
-sim_assets <- function(N, mu, sigma) {
-    .Call(`_gp_sim_assets`, N, mu, sigma)
+draw_bernoulli <- function(p, N, T) {
+    .Call(`_gp_draw_bernoulli`, p, N, T)
+}
+
+#' Simulate income process
+#' @param N
+#' @param T
+#' @param g
+#' @param sigma_n
+#' @param sigma_u
+#' @param p_noinc
+#' @export
+simulate_income_process <- function(N, T, P_init, G, sigma_n, sigma_u, p_noinc) {
+    .Call(`_gp_simulate_income_process`, N, T, P_init, G, sigma_n, sigma_u, p_noinc)
 }
 

@@ -309,15 +309,15 @@ arma::vec solve_euler(arma::vec c_next_grid,
 //' @export
 // [[Rcpp::export]]
 arma::mat consumption_path(arma::vec x,
-                          arma::vec G,
-                          double sigma_n,
-                          double sigma_u,
-                          double gamma_0,
-                          double gamma_1,
-                          double R,
-                          double p_noinc,
-                          double beta,
-                          double rho) {
+                           arma::vec G,
+                           double sigma_n,
+                           double sigma_u,
+                           double gamma_0,
+                           double gamma_1,
+                           double R,
+                           double p_noinc,
+                           double beta,
+                           double rho) {
  int N = x.n_elem;
  int T = G.n_elem;
 
@@ -361,36 +361,71 @@ arma::vec sim_assets(int N, double mu, double sigma) {
   return assets;
 }
 
+//' Draw a random matrix of bernoullis
+//' @param p probability of a 0
+//' @param N number of rows
+//' @param T number of cols
+//' @export
+//' @details the probability is of a _zero_ not a one
+//' because we are generating the probability of zero
+//' income and it makes it easier, even though this is
+//' non-standard.
+// [[Rcpp::export]]
+arma::mat draw_bernoulli(double p, int N, int T) {
+  arma::mat m(N, T, arma::fill::randu);
+  m.for_each([p](arma::mat::elem_type& val) { val = (val >= p); });
+  return m;
+}
+
 //' Simulate income process
-//' @param N
-//' @param T
-//' @param g
-//' @param sigma_n
-//' @param sigma_u
-//' @param p_noinc
+//' @param N number of simulated agents
+//' @param T number of time periods
+//' @param G vector of growth rates (levels)
+//' @param sigma_n standard deviation of permanent income shocks
+//' @param sigma_u standard deviation of temporary income shocks
+//' @param p_noinc probably income is equal to zero
 //' @export
 // [[Rcpp::export]]
-arma::mat simulate_income_process(
-  N, T, g, sigma_n, sigma_u, p_noinc
+Rcpp::List simulate_income_process(
+  int N,
+  int T,
+  arma::vec P_init, // size N
+  arma::vec G, // size T
+  double sigma_n,
+  double sigma_u,
+  double p_noinc
 ) {
 
   // N x T matrix of income
   arma::mat inc_process(N, T);
 
   // shocks are log normal
-  n_shocks = arma::mat(N, T, arma::fill::randn);
-  u_shocks = arma::mat(N, T, arma::fill::randn);
+  arma::mat n_shocks(N, T, arma::fill::randn);
+  arma::mat u_shocks(N, T, arma::fill::randn);
 
   // scale appropriately
   n_shocks = n_shocks * sigma_n;
   u_shocks = u_shocks * sigma_u;
 
+  // shocks where income is equal to 0
+  arma::mat Z_shocks = draw_bernoulli(p_noinc, N, T);
+
   // need this for case when U = 0
   // otherwise log shock not well defined
-  U_shocks = exp(u_shocks);
-  N_shocks = exp(u_shocks);
+  arma::mat U_shocks = exp(u_shocks) % Z_shocks;
+  arma::mat N_shocks = exp(u_shocks);
 
-
-
+  arma::mat Y(N, T, arma::fill::zeros);
+  arma::mat P(N, T, arma::fill::zeros);
+  P.col(0) = P_init;
+  Y.col(0) = P_init;
+  for(int t = 1; t < T; t++) {
+    P.col(t) = P.col(t - 1) * G(t) % N_shocks.col(t);
+    Y.col(t) = P.col(t) % U_shocks.col(t);
+  }
+  return Rcpp::List::create(
+    Rcpp::Named("Y") = Y,
+    Rcpp::Named("P") = P
+  );
 }
 

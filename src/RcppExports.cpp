@@ -79,16 +79,33 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sim_assets
-arma::vec sim_assets(int N, double mu, double sigma);
-RcppExport SEXP _gp_sim_assets(SEXP NSEXP, SEXP muSEXP, SEXP sigmaSEXP) {
+// draw_bernoulli
+arma::mat draw_bernoulli(double p, int N, int T);
+RcppExport SEXP _gp_draw_bernoulli(SEXP pSEXP, SEXP NSEXP, SEXP TSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type p(pSEXP);
+    Rcpp::traits::input_parameter< int >::type N(NSEXP);
+    Rcpp::traits::input_parameter< int >::type T(TSEXP);
+    rcpp_result_gen = Rcpp::wrap(draw_bernoulli(p, N, T));
+    return rcpp_result_gen;
+END_RCPP
+}
+// simulate_income_process
+Rcpp::List simulate_income_process(int N, int T, arma::vec P_init, arma::vec G, double sigma_n, double sigma_u, double p_noinc);
+RcppExport SEXP _gp_simulate_income_process(SEXP NSEXP, SEXP TSEXP, SEXP P_initSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP p_noincSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type N(NSEXP);
-    Rcpp::traits::input_parameter< double >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
-    rcpp_result_gen = Rcpp::wrap(sim_assets(N, mu, sigma));
+    Rcpp::traits::input_parameter< int >::type T(TSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type P_init(P_initSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type G(GSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma_n(sigma_nSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma_u(sigma_uSEXP);
+    Rcpp::traits::input_parameter< double >::type p_noinc(p_noincSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulate_income_process(N, T, P_init, G, sigma_n, sigma_u, p_noinc));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -98,7 +115,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_gp_net_euler_diff", (DL_FUNC) &_gp_net_euler_diff, 11},
     {"_gp_nw", (DL_FUNC) &_gp_nw, 2},
     {"_gp_consumption_path", (DL_FUNC) &_gp_consumption_path, 10},
-    {"_gp_sim_assets", (DL_FUNC) &_gp_sim_assets, 3},
+    {"_gp_draw_bernoulli", (DL_FUNC) &_gp_draw_bernoulli, 3},
+    {"_gp_simulate_income_process", (DL_FUNC) &_gp_simulate_income_process, 7},
     {NULL, NULL, 0}
 };
 
