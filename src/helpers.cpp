@@ -461,7 +461,7 @@ arma::vec consume(arma::vec Y,
 //' @param T number of time periods
 //' @param G growth of permanent income
 //' @param sigma_n sd of permanent income
-//' @param sigma_u sd termporary income shocks
+//' @param sigma_u sd temporary income shocks
 //' @param mu_a average log starting assets
 //' @param sigma_a sd of log starting assets
 //' @param p_noinc probability that income is zero
@@ -473,7 +473,7 @@ arma::vec consume(arma::vec Y,
 arma::vec simulate_lifecycle(
   int N,
   int T,
-  arma::vec& x_grid
+  arma::vec& x_grid,
   arma::vec& P_init, // size N
   arma::vec& G, // size T
   double sigma_n,
@@ -495,10 +495,10 @@ arma::vec simulate_lifecycle(
     gamma_0, gamma_1,
     R, p_noinc,
     beta, rho
-  )
+  );
 
   // simulate income realizations conditional on params
-  arma::mat income = simulate_income_process(
+  Rcpp::List income = simulate_income(
     N,
     T,
     P_init, // size N
@@ -506,7 +506,7 @@ arma::vec simulate_lifecycle(
     sigma_n,
     sigma_u,
     p_noinc
-  )
+  );
 
   // actual income
   arma::mat Y = income["Y"];
@@ -515,7 +515,7 @@ arma::vec simulate_lifecycle(
   arma::mat P = income["P"];
 
   // draw initial assets
-  init_assets = simulate_assets(N, mu_a, sigma_a)
+  arma::vec init_assets = simulate_assets(N, mu_a, sigma_a);
 
   // assets
   // always lagged a period relative to income / consumption
@@ -531,11 +531,11 @@ arma::vec simulate_lifecycle(
     C.col(t) = consume(
       Y.col(t), A.col(t), P.col(t),
       x_grid, cr, T, R
-    )
+    );
     // assets we have access to next period
     // in last period we don't need to track this
     if(t < T - 1) {
-      A.col(t + 1) = Y.col(t) + A.col(t) * R - C.col(t)
+      A.col(t + 1) = Y.col(t) + A.col(t) * R - C.col(t);
     }
   }
 

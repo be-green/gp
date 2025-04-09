@@ -72,14 +72,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// consumption_path
-arma::mat consumption_path(arma::vec x, arma::vec G, double sigma_n, double sigma_u, double gamma_0, double gamma_1, double R, double p_noinc, double beta, double rho);
-RcppExport SEXP _gp_consumption_path(SEXP xSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP gamma_0SEXP, SEXP gamma_1SEXP, SEXP RSEXP, SEXP p_noincSEXP, SEXP betaSEXP, SEXP rhoSEXP) {
+// consumption_rule
+arma::mat consumption_rule(arma::vec& x, arma::vec& G, double sigma_n, double sigma_u, double gamma_0, double gamma_1, double R, double p_noinc, double beta, double rho);
+RcppExport SEXP _gp_consumption_rule(SEXP xSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP gamma_0SEXP, SEXP gamma_1SEXP, SEXP RSEXP, SEXP p_noincSEXP, SEXP betaSEXP, SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type G(GSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type G(GSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_n(sigma_nSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_u(sigma_uSEXP);
     Rcpp::traits::input_parameter< double >::type gamma_0(gamma_0SEXP);
@@ -88,7 +88,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type p_noinc(p_noincSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(consumption_path(x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho));
+    rcpp_result_gen = Rcpp::wrap(consumption_rule(x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -105,9 +105,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// simulate_income_process
-Rcpp::List simulate_income_process(int N, int T, arma::vec P_init, arma::vec G, double sigma_n, double sigma_u, double p_noinc);
-RcppExport SEXP _gp_simulate_income_process(SEXP NSEXP, SEXP TSEXP, SEXP P_initSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP p_noincSEXP) {
+// simulate_income
+Rcpp::List simulate_income(int N, int T, arma::vec P_init, arma::vec G, double sigma_n, double sigma_u, double p_noinc);
+RcppExport SEXP _gp_simulate_income(SEXP NSEXP, SEXP TSEXP, SEXP P_initSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP p_noincSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -118,13 +118,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type sigma_n(sigma_nSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_u(sigma_uSEXP);
     Rcpp::traits::input_parameter< double >::type p_noinc(p_noincSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_income_process(N, T, P_init, G, sigma_n, sigma_u, p_noinc));
+    rcpp_result_gen = Rcpp::wrap(simulate_income(N, T, P_init, G, sigma_n, sigma_u, p_noinc));
     return rcpp_result_gen;
 END_RCPP
 }
 // consume
-arma::vec consume(arma::vec Y, arma::vec A, arma::vec P, arma::vec& x_grid, arma::mat& consumption_rule, int T, double R);
-RcppExport SEXP _gp_consume(SEXP YSEXP, SEXP ASEXP, SEXP PSEXP, SEXP x_gridSEXP, SEXP consumption_ruleSEXP, SEXP TSEXP, SEXP RSEXP) {
+arma::vec consume(arma::vec Y, arma::vec A, arma::vec P, arma::vec& x_grid, arma::mat& cr, int T, double R);
+RcppExport SEXP _gp_consume(SEXP YSEXP, SEXP ASEXP, SEXP PSEXP, SEXP x_gridSEXP, SEXP crSEXP, SEXP TSEXP, SEXP RSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -132,32 +132,35 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type A(ASEXP);
     Rcpp::traits::input_parameter< arma::vec >::type P(PSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type x_grid(x_gridSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type consumption_rule(consumption_ruleSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type cr(crSEXP);
     Rcpp::traits::input_parameter< int >::type T(TSEXP);
     Rcpp::traits::input_parameter< double >::type R(RSEXP);
-    rcpp_result_gen = Rcpp::wrap(consume(Y, A, P, x_grid, consumption_rule, T, R));
+    rcpp_result_gen = Rcpp::wrap(consume(Y, A, P, x_grid, cr, T, R));
     return rcpp_result_gen;
 END_RCPP
 }
-// simulate_consumption_savings
-arma::mat simulate_consumption_savings(int N, int T, arma::vec P_init, arma::vec G, double sigma_n, double sigma_u, double gamma_0, double gamma_1, double R, double p_noinc, double beta, double rho);
-RcppExport SEXP _gp_simulate_consumption_savings(SEXP NSEXP, SEXP TSEXP, SEXP P_initSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP gamma_0SEXP, SEXP gamma_1SEXP, SEXP RSEXP, SEXP p_noincSEXP, SEXP betaSEXP, SEXP rhoSEXP) {
+// simulate_lifecycle
+arma::vec simulate_lifecycle(int N, int T, arma::vec& x_grid, arma::vec& P_init, arma::vec& G, double sigma_n, double sigma_u, double gamma_0, double gamma_1, double mu_a, double sigma_a, double R, double p_noinc, double beta, double rho);
+RcppExport SEXP _gp_simulate_lifecycle(SEXP NSEXP, SEXP TSEXP, SEXP x_gridSEXP, SEXP P_initSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP gamma_0SEXP, SEXP gamma_1SEXP, SEXP mu_aSEXP, SEXP sigma_aSEXP, SEXP RSEXP, SEXP p_noincSEXP, SEXP betaSEXP, SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type N(NSEXP);
     Rcpp::traits::input_parameter< int >::type T(TSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type P_init(P_initSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type G(GSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type x_grid(x_gridSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type P_init(P_initSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type G(GSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_n(sigma_nSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_u(sigma_uSEXP);
     Rcpp::traits::input_parameter< double >::type gamma_0(gamma_0SEXP);
     Rcpp::traits::input_parameter< double >::type gamma_1(gamma_1SEXP);
+    Rcpp::traits::input_parameter< double >::type mu_a(mu_aSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma_a(sigma_aSEXP);
     Rcpp::traits::input_parameter< double >::type R(RSEXP);
     Rcpp::traits::input_parameter< double >::type p_noinc(p_noincSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_consumption_savings(N, T, P_init, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho));
+    rcpp_result_gen = Rcpp::wrap(simulate_lifecycle(N, T, x_grid, P_init, G, sigma_n, sigma_u, gamma_0, gamma_1, mu_a, sigma_a, R, p_noinc, beta, rho));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -167,11 +170,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_gp_gh_quadrature", (DL_FUNC) &_gp_gh_quadrature, 6},
     {"_gp_net_euler_diff", (DL_FUNC) &_gp_net_euler_diff, 11},
     {"_gp_nw", (DL_FUNC) &_gp_nw, 2},
-    {"_gp_consumption_path", (DL_FUNC) &_gp_consumption_path, 10},
+    {"_gp_consumption_rule", (DL_FUNC) &_gp_consumption_rule, 10},
     {"_gp_draw_bernoulli", (DL_FUNC) &_gp_draw_bernoulli, 3},
-    {"_gp_simulate_income_process", (DL_FUNC) &_gp_simulate_income_process, 7},
+    {"_gp_simulate_income", (DL_FUNC) &_gp_simulate_income, 7},
     {"_gp_consume", (DL_FUNC) &_gp_consume, 7},
-    {"_gp_simulate_consumption_savings", (DL_FUNC) &_gp_simulate_consumption_savings, 12},
+    {"_gp_simulate_lifecycle", (DL_FUNC) &_gp_simulate_lifecycle, 15},
     {NULL, NULL, 0}
 };
 
