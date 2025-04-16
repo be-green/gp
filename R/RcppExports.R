@@ -11,13 +11,6 @@
 #' for a vector
 NULL
 
-#' Linear interpolation
-#' @param z input parameter to linearly interpolate the x coordinates
-#' @param c output vector to weight based on the input
-#' @details Returns a matrix of linearly interpolated values
-#' @export
-NULL
-
 #' Marginal utility
 #' @param c consumption
 #' @param rho risk aversion
@@ -35,11 +28,14 @@ NULL
 #' @export
 NULL
 
-#' Simulate N asset draws from log normal distribution
-#' @param N number of draws
-#' @param mu mean of distribution
-#' @param sigma sd of distribution
-NULL
+#' Linear interpolation
+#' @param z input parameter to linearly interpolate the x coordinates
+#' @param c output vector to weight based on the input
+#' @details Returns a matrix of linearly interpolated values
+#' @export
+linterp <- function(x, z, c) {
+    .Call(`_gp_linterp`, x, z, c)
+}
 
 #' Computes the 2D Gaussian quadrature rule of order 12
 #' @param mu_n mean of permanent shocks
@@ -86,28 +82,75 @@ nw <- function(sigma_n, sigma_u) {
 #' @param T number of years
 #' @param beta time discount factor
 #' @export
-consumption_path <- function(x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho) {
-    .Call(`_gp_consumption_path`, x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho)
+consumption_rule <- function(x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho) {
+    .Call(`_gp_consumption_rule`, x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho)
+}
+
+#' Simulate N asset draws from log normal distribution
+#' @param N number of draws
+#' @param mu mean of distribution
+#' @param sigma sd of distribution
+#' @export
+simulate_assets <- function(N, mu, sigma) {
+    .Call(`_gp_simulate_assets`, N, mu, sigma)
 }
 
 #' Draw a random matrix of bernoullis
-#' @param p probability of a 1
+#' @param p probability of a 0
 #' @param N number of rows
 #' @param T number of cols
 #' @export
+#' @details the probability is of a _zero_ not a one
+#' because we are generating the probability of zero
+#' income and it makes it easier, even though this is
+#' non-standard.
 draw_bernoulli <- function(p, N, T) {
     .Call(`_gp_draw_bernoulli`, p, N, T)
 }
 
 #' Simulate income process
-#' @param N
-#' @param T
-#' @param g
-#' @param sigma_n
-#' @param sigma_u
-#' @param p_noinc
+#' @param N number of simulated agents
+#' @param T number of time periods
+#' @param G vector of growth rates (levels)
+#' @param sigma_n standard deviation of permanent income shocks
+#' @param sigma_u standard deviation of temporary income shocks
+#' @param p_noinc probably income is equal to zero
 #' @export
-simulate_income_process <- function(N, T, P_init, G, sigma_n, sigma_u, p_noinc) {
-    .Call(`_gp_simulate_income_process`, N, T, P_init, G, sigma_n, sigma_u, p_noinc)
+simulate_income <- function(N, T, P_init, G, sigma_n, sigma_u, p_noinc) {
+    .Call(`_gp_simulate_income`, N, T, P_init, G, sigma_n, sigma_u, p_noinc)
+}
+
+#' Consume out of cash on hand
+#' @param x cash on hand per unit of permanent income
+#' @param x_grid grid we are using for linear interpolation
+#' @param cr optimal consumption rule
+#' solved for with consumption_rule function
+#' @details This computes consumption given income
+#' assets and return on assets by first computing cash
+#' on hand and then passing to the optimal consumption
+#' rule.
+#' @export
+consume <- function(x, x_grid, cr, t) {
+    .Call(`_gp_consume`, x, x_grid, cr, t)
+}
+
+#' Simulate consumption / savings lifecycle problem
+#' @param N number of simulations
+#' @param T number of time periods
+#' @param x_grid grid of permanent income we use for consumption rule
+#' @param N_shock matrix of permanent income shocks
+#' @param U_shock matrix of temporary income shocks
+#' @param G growth of permanent income
+#' @param sigma_n sd of permanent income
+#' @param sigma_u sd temporary income shocks
+#' @param mu_a average log starting assets
+#' @param sigma_a sd of log starting assets
+#' @param p_noinc probability that income is zero
+#' @param R gross return on assets
+#' @param beta time discount factor
+#' @param rho CRRA risk aversion
+#' @export
+simulate_lifecycle <- function(N, T, x_grid, N_shock, U_shock, P, init_a, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho) {
+    .Call(`_gp_simulate_lifecycle`, N, T, x_grid, N_shock, U_shock, P, init_a, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho)
 }
 

@@ -12,42 +12,39 @@ using namespace Rcpp;
 //' @details Binary search (bisection) to find a
 //' root of f in the interval [a, b]
 //' for a vector
-arma::vec find_roots(std::function<arma::vec(arma::vec)>& f,
-                    arma::vec a,
-                    arma::vec b,
-                    double tol = 1e-5,
-                    int maxIter = 1000) {
+arma::vec find_roots(std::function<arma::vec(arma::vec)> f,
+                     arma::vec a,
+                     arma::vec b,
+                     double tol = 1e-5,
+                     int maxIter = 1000) {
 
- arma::vec fa = f(a);
- arma::vec fb = f(b);
+   arma::vec fa = f(a);
+   arma::vec fb = f(b);
+   arma::vec mid(a.n_elem, arma::fill::zeros);
+   arma::vec fmid;
 
- arma::vec mid(a.n_rows, arma::fill::zeros);
- arma::uvec a_idx;
- arma::uvec b_idx;
- arma::vec fmid;
- for (int iter = 0; iter < maxIter; ++iter) {
-   mid = (a + b) / 2.0;
-   fmid = f(mid);
+   for (int iter = 0; iter < maxIter; ++iter) {
+     mid = (a + b) / 2.0;
+     fmid = f(mid);
 
-   // Check if the mid value is close enough to a root.
-   if (arma::sum(arma::abs(fmid)) < tol || arma::sum((b - a) / 2.0) < tol) {
-     return mid;
+     // Check for convergence in each interval using the maximum value.
+     if (arma::max(arma::abs(fmid)) < tol || arma::max((b - a) / 2.0) < tol) {
+       return mid;
+     }
+
+     // Update intervals elementwise based on the sign change.
+     arma::uvec b_idx = arma::find(fa % fmid < 0);
+     arma::uvec a_idx = arma::find(fa % fmid >= 0);
+
+     b.elem(b_idx) = mid.elem(b_idx);
+     fb.elem(b_idx) = fmid.elem(b_idx);
+
+     a.elem(a_idx) = mid.elem(a_idx);
+     fa.elem(a_idx) = fmid.elem(a_idx);
    }
 
-   // Decide which half-interval to keep.
-   b_idx = arma::find(fa % fmid < 0);
-   b(b_idx) = mid(b_idx);
-   fb(b_idx) = fmid(b_idx);
-
-   a_idx = arma::find(fa % fmid >= 0);
-   a(a_idx) = mid(a_idx);
-   fa(a_idx) = fmid(a_idx);
-
- }
-
- // If we reach here, max iterations were exceeded.
- Rcpp::Rcerr << "Warning: Maximum iterations reached. Returning best approximation." << std::endl;
- return mid;
+   Rcpp::Rcerr << "Warning: Maximum iterations reached. Returning best approximation." << std::endl;
+   return mid;
 }
 
 //' Linear interpolation
@@ -320,7 +317,7 @@ arma::mat consumption_rule(arma::vec& x,
                            double beta,
                            double rho) {
  int N = x.n_elem;
- int T = G.n_elem;
+ int T = G.n_elem + 1;
 
  // consumption vector
  arma::mat c(N, T, arma::fill::zeros);
@@ -334,7 +331,7 @@ arma::mat consumption_rule(arma::vec& x,
      solve_euler(c.col(t),
                  x,
                  R,
-                 G(t),
+                 G(t - 1),
                  sigma_n,
                  sigma_u,
                  p_noinc,
@@ -348,6 +345,8 @@ arma::mat consumption_rule(arma::vec& x,
 //' @param N number of draws
 //' @param mu mean of distribution
 //' @param sigma sd of distribution
+//' @export
+// [[Rcpp::export]]
 arma::vec simulate_assets(int N, double mu, double sigma) {
 
   // standard normal
@@ -390,8 +389,8 @@ arma::mat draw_bernoulli(double p, int N, int T) {
 Rcpp::List simulate_income(
   int N,
   int T,
-  arma::vec P_init, // size N
-  arma::vec G, // size T
+  arma::vec& P_init, // size N
+  arma::vec& G, // size T - 1
   double sigma_n,
   double sigma_u,
   double p_noinc
@@ -414,27 +413,29 @@ Rcpp::List simulate_income(
   // need this for case when U = 0
   // otherwise log shock not well defined
   arma::mat U_shocks = exp(u_shocks) % Z_shocks;
-  arma::mat N_shocks = exp(u_shocks);
+  arma::mat N_shocks = exp(n_shocks);
 
   arma::mat Y(N, T, arma::fill::zeros);
   arma::mat P(N, T, arma::fill::zeros);
+
   P.col(0) = P_init;
-  Y.col(0) = P_init;
+  Y.col(0) = P_init % U_shocks.col(0);
+
   for(int t = 1; t < T; t++) {
-    P.col(t) = P.col(t - 1) * G(t) % N_shocks.col(t);
+    P.col(t) = P.col(t - 1) * G(t - 1) % N_shocks.col(t);
     Y.col(t) = P.col(t) % U_shocks.col(t);
   }
   return Rcpp::List::create(
     Rcpp::Named("Y") = Y,
-    Rcpp::Named("P") = P
+    Rcpp::Named("P") = P,
+    Rcpp::Named("U_shocks") = U_shocks,
+    Rcpp::Named("N_shocks") = N_shocks
   );
 }
 
 //' Consume out of cash on hand
-//' @param Y labor income
-//' @param A assets
-//' @param R gross return on assets
-//' @param P permanent income for scaling cash on hand
+//' @param x cash on hand per unit of permanent income
+//' @param x_grid grid we are using for linear interpolation
 //' @param cr optimal consumption rule
 //' solved for with consumption_rule function
 //' @details This computes consumption given income
@@ -443,22 +444,23 @@ Rcpp::List simulate_income(
 //' rule.
 //' @export
 // [[Rcpp::export]]
-arma::vec consume(arma::vec Y,
-                  arma::vec A,
-                  arma::vec P,
+arma::vec consume(arma::vec x,
                   arma::vec& x_grid,
                   arma::mat& cr,
-                  int T,
-                  double R) {
-  arma::vec X = R * A + Y;
-  arma::vec x = X / P;
-  arma::vec c = linterp(x, x_grid, cr.col(T));
+                  int t) {
+  // interpolate on grid and convert back to consumption units
+  arma::vec c = linterp(x, x_grid, cr.col(t));
+  // enforce borrowing constraint
+  c = min(c, x);
   return c;
 }
 
 //' Simulate consumption / savings lifecycle problem
 //' @param N number of simulations
 //' @param T number of time periods
+//' @param x_grid grid of permanent income we use for consumption rule
+//' @param N_shock matrix of permanent income shocks
+//' @param U_shock matrix of temporary income shocks
 //' @param G growth of permanent income
 //' @param sigma_n sd of permanent income
 //' @param sigma_u sd temporary income shocks
@@ -470,18 +472,19 @@ arma::vec consume(arma::vec Y,
 //' @param rho CRRA risk aversion
 //' @export
 // [[Rcpp::export]]
-arma::vec simulate_lifecycle(
+Rcpp::List simulate_lifecycle(
   int N,
   int T,
   arma::vec& x_grid,
-  arma::vec& P_init, // size N
-  arma::vec& G, // size T
+  arma::mat& N_shock,
+  arma::mat& U_shock,
+  arma::mat& P,
+  arma::vec& init_a,
+  arma::vec& G,
   double sigma_n,
   double sigma_u,
   double gamma_0,
   double gamma_1,
-  double mu_a,
-  double sigma_a,
   double R,
   double p_noinc,
   double beta,
@@ -497,51 +500,42 @@ arma::vec simulate_lifecycle(
     beta, rho
   );
 
-  // simulate income realizations conditional on params
-  Rcpp::List income = simulate_income(
-    N,
-    T,
-    P_init, // size N
-    G, // size T
-    sigma_n,
-    sigma_u,
-    p_noinc
-  );
-
-  // actual income
-  arma::mat Y = income["Y"];
-
-  // permanent income
-  arma::mat P = income["P"];
-
-  // draw initial assets
-  arma::vec init_assets = simulate_assets(N, mu_a, sigma_a);
-
   // assets
   // always lagged a period relative to income / consumption
-  arma::mat A(N, T, arma::fill::zeros);
-  A.col(0) = init_assets;
+  arma::mat x(N, T, arma::fill::zeros);
+
+  // cash on hand constraint in the first period
+  x.col(0) = init_a * R / (G(0) * N_shock.col(0)) + U_shock.col(0);
 
   // consumption over time
-  arma::mat C(N, T, arma::fill::zeros);
+  arma::mat c(N, T, arma::fill::zeros);
 
-  for(uint t = 0; t++; t < T) {
+  for(uint t = 0; t < T; t++) {
 
     // consumption for each period
-    C.col(t) = consume(
-      Y.col(t), A.col(t), P.col(t),
-      x_grid, cr, T, R
-    );
+    c.col(t) = consume(x.col(t), x_grid, cr, t);
+
     // assets we have access to next period
     // in last period we don't need to track this
+    // this is eq 4 of gourinchas parker
     if(t < T - 1) {
-      A.col(t + 1) = Y.col(t) + A.col(t) * R - C.col(t);
+      x.col(t + 1) =
+        (x.col(t) - c.col(t)) * R / (G(t) * N_shock.col(t + 1)) +
+        U_shock.col(t + 1);
     }
   }
 
   // column means of simulated consumption
   // this is what enters our loss function
-  arma::vec C_t = mean(C, 0);
-  return C_t;
-}
+  arma::mat C = c % P;
 
+  arma::vec C_t = mean(C, 0).t();
+  arma::vec x_t = mean(x, 0).t();
+  return Rcpp::List::create(
+    Rcpp::Named("Cbar") = C_t,
+    Rcpp::Named("xbar") = x_t,
+    Rcpp::Named("C") = C,
+    Rcpp::Named("x") = x,
+    Rcpp::Named("CR") = cr
+  );
+}
