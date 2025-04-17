@@ -28,6 +28,17 @@ NULL
 #' @export
 NULL
 
+#' Draw a random matrix of bernoullis
+#' @param p probability of a 0
+#' @param N number of rows
+#' @param T number of cols
+#' @export
+#' @details the probability is of a _zero_ not a one
+#' because we are generating the probability of zero
+#' income and it makes it easier, even though this is
+#' non-standard.
+NULL
+
 #' Linear interpolation
 #' @param z input parameter to linearly interpolate the x coordinates
 #' @param c output vector to weight based on the input
@@ -95,19 +106,6 @@ simulate_assets <- function(N, mu, sigma) {
     .Call(`_gp_simulate_assets`, N, mu, sigma)
 }
 
-#' Draw a random matrix of bernoullis
-#' @param p probability of a 0
-#' @param N number of rows
-#' @param T number of cols
-#' @export
-#' @details the probability is of a _zero_ not a one
-#' because we are generating the probability of zero
-#' income and it makes it easier, even though this is
-#' non-standard.
-draw_bernoulli <- function(p, N, T) {
-    .Call(`_gp_draw_bernoulli`, p, N, T)
-}
-
 #' Simulate income process
 #' @param N number of simulated agents
 #' @param T number of time periods
@@ -150,7 +148,7 @@ consume <- function(x, x_grid, cr, t) {
 #' @param beta time discount factor
 #' @param rho CRRA risk aversion
 #' @export
-simulate_lifecycle <- function(N, T, x_grid, N_shock, U_shock, P, init_a, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho) {
-    .Call(`_gp_simulate_lifecycle`, N, T, x_grid, N_shock, U_shock, P, init_a, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho)
+simulate_lifecycle <- function(N, T, x_grid, N_shock, U_shock, P, init_x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho) {
+    .Call(`_gp_simulate_lifecycle`, N, T, x_grid, N_shock, U_shock, P, init_x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho)
 }
 

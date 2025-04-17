@@ -31,9 +31,9 @@ loss = function(gamma_0,
     rho
   )
 
-  lc = log(gp::c / 10000)
+  lc = log(gp::c)
 
-  sum((lc - log(out$Cbar))^2)
+  sum((lc[2:40] - log(out$Cbar[2:40,]))^2)
 
 }
 
@@ -71,7 +71,7 @@ sim_given_params = function(gamma_0,
   P = income$P
 
   # draw initial assets
-  init_a = simulate_assets(N, mu_a, sigma_a) / P[,1]
+  init_x = simulate_assets(N, mu_a, sigma_a) / init_p
 
   c_out = simulate_lifecycle(
     N,
@@ -80,7 +80,7 @@ sim_given_params = function(gamma_0,
     income$N_shocks,
     income$U_shocks,
     P,
-    init_a,
+    init_x,
     G,
     sigma_n,
     sigma_u,
@@ -94,7 +94,7 @@ sim_given_params = function(gamma_0,
   c_out
 }
 
-solve_model = function(init) {
+solve_model = function(init, ...) {
   optim(init, \(theta)  {
     loss(
       theta[1],
@@ -102,6 +102,6 @@ solve_model = function(init) {
       theta[3],
       theta[4]
     )
-  }, lower = c(0, 0, 0.7, 1.3),
-  upper = c(0.8, 0.8, 1, 5), method = "L-BFGS-B")
+  }, lower = c(0.0001, 0.0001, 0.7, 0.2),
+  upper = c(0.8, 0.8, 1, 10), method = "L-BFGS-B", ...)
 }

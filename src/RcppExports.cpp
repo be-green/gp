@@ -105,19 +105,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// draw_bernoulli
-arma::mat draw_bernoulli(double p, int N, int T);
-RcppExport SEXP _gp_draw_bernoulli(SEXP pSEXP, SEXP NSEXP, SEXP TSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type p(pSEXP);
-    Rcpp::traits::input_parameter< int >::type N(NSEXP);
-    Rcpp::traits::input_parameter< int >::type T(TSEXP);
-    rcpp_result_gen = Rcpp::wrap(draw_bernoulli(p, N, T));
-    return rcpp_result_gen;
-END_RCPP
-}
 // simulate_income
 Rcpp::List simulate_income(int N, int T, arma::vec& P_init, arma::vec& G, double sigma_n, double sigma_u, double p_noinc);
 RcppExport SEXP _gp_simulate_income(SEXP NSEXP, SEXP TSEXP, SEXP P_initSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP p_noincSEXP) {
@@ -150,8 +137,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // simulate_lifecycle
-Rcpp::List simulate_lifecycle(int N, int T, arma::vec& x_grid, arma::mat& N_shock, arma::mat& U_shock, arma::mat& P, arma::vec& init_a, arma::vec& G, double sigma_n, double sigma_u, double gamma_0, double gamma_1, double R, double p_noinc, double beta, double rho);
-RcppExport SEXP _gp_simulate_lifecycle(SEXP NSEXP, SEXP TSEXP, SEXP x_gridSEXP, SEXP N_shockSEXP, SEXP U_shockSEXP, SEXP PSEXP, SEXP init_aSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP gamma_0SEXP, SEXP gamma_1SEXP, SEXP RSEXP, SEXP p_noincSEXP, SEXP betaSEXP, SEXP rhoSEXP) {
+Rcpp::List simulate_lifecycle(int N, int T, arma::vec& x_grid, arma::mat& N_shock, arma::mat& U_shock, arma::mat& P, arma::vec& init_x, arma::vec& G, double sigma_n, double sigma_u, double gamma_0, double gamma_1, double R, double p_noinc, double beta, double rho);
+RcppExport SEXP _gp_simulate_lifecycle(SEXP NSEXP, SEXP TSEXP, SEXP x_gridSEXP, SEXP N_shockSEXP, SEXP U_shockSEXP, SEXP PSEXP, SEXP init_xSEXP, SEXP GSEXP, SEXP sigma_nSEXP, SEXP sigma_uSEXP, SEXP gamma_0SEXP, SEXP gamma_1SEXP, SEXP RSEXP, SEXP p_noincSEXP, SEXP betaSEXP, SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -161,7 +148,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat& >::type N_shock(N_shockSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type U_shock(U_shockSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type P(PSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type init_a(init_aSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type init_x(init_xSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type G(GSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_n(sigma_nSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_u(sigma_uSEXP);
@@ -171,7 +158,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type p_noinc(p_noincSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_lifecycle(N, T, x_grid, N_shock, U_shock, P, init_a, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho));
+    rcpp_result_gen = Rcpp::wrap(simulate_lifecycle(N, T, x_grid, N_shock, U_shock, P, init_x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -183,7 +170,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_gp_nw", (DL_FUNC) &_gp_nw, 2},
     {"_gp_consumption_rule", (DL_FUNC) &_gp_consumption_rule, 10},
     {"_gp_simulate_assets", (DL_FUNC) &_gp_simulate_assets, 3},
-    {"_gp_draw_bernoulli", (DL_FUNC) &_gp_draw_bernoulli, 3},
     {"_gp_simulate_income", (DL_FUNC) &_gp_simulate_income, 7},
     {"_gp_consume", (DL_FUNC) &_gp_consume, 4},
     {"_gp_simulate_lifecycle", (DL_FUNC) &_gp_simulate_lifecycle, 16},

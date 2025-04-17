@@ -179,16 +179,16 @@ arma::mat u_prime(arma::mat c, double rho) {
 //' @export
 // [[Rcpp::export]]
 arma::vec net_euler_diff(arma::vec c_now,
-                        arma::vec x,
-                        arma::vec c_next,
-                        arma::mat const_scale_coh,
-                        arma::mat const_add_coh,
-                        arma::mat const_scale_consump,
-                        arma::vec weights,
-                        double R,
-                        double p_noinc,
-                        double beta,
-                        double rho) {
+                         arma::vec x,
+                         arma::vec c_next,
+                         arma::mat const_scale_coh,
+                         arma::mat const_add_coh,
+                         arma::mat const_scale_consump,
+                         arma::vec weights,
+                         double R,
+                         double p_noinc,
+                         double beta,
+                         double rho) {
 
  arma::mat x_minus_c_now = repmat(x - c_now, 1, const_scale_coh.n_cols);
  arma::mat c_next_mat = repmat(c_next, 1, const_scale_coh.n_cols);
@@ -370,7 +370,6 @@ arma::vec simulate_assets(int N, double mu, double sigma) {
 //' because we are generating the probability of zero
 //' income and it makes it easier, even though this is
 //' non-standard.
-// [[Rcpp::export]]
 arma::mat draw_bernoulli(double p, int N, int T) {
   arma::mat m(N, T, arma::fill::randu);
   m.for_each([p](arma::mat::elem_type& val) { val = (val >= p); });
@@ -418,13 +417,14 @@ Rcpp::List simulate_income(
   arma::mat Y(N, T, arma::fill::zeros);
   arma::mat P(N, T, arma::fill::zeros);
 
-  P.col(0) = P_init;
-  Y.col(0) = P_init % U_shocks.col(0);
+  P.col(0) = P_init % N_shocks.col(0);
+  Y.col(0) = P.col(0) % U_shocks.col(0);
 
   for(int t = 1; t < T; t++) {
     P.col(t) = P.col(t - 1) * G(t - 1) % N_shocks.col(t);
     Y.col(t) = P.col(t) % U_shocks.col(t);
   }
+
   return Rcpp::List::create(
     Rcpp::Named("Y") = Y,
     Rcpp::Named("P") = P,
@@ -451,7 +451,7 @@ arma::vec consume(arma::vec x,
   // interpolate on grid and convert back to consumption units
   arma::vec c = linterp(x, x_grid, cr.col(t));
   // enforce borrowing constraint
-  c = min(c, x);
+  c = arma::min(c, x);
   return c;
 }
 
@@ -479,7 +479,7 @@ Rcpp::List simulate_lifecycle(
   arma::mat& N_shock,
   arma::mat& U_shock,
   arma::mat& P,
-  arma::vec& init_a,
+  arma::vec& init_x,
   arma::vec& G,
   double sigma_n,
   double sigma_u,
@@ -505,23 +505,24 @@ Rcpp::List simulate_lifecycle(
   arma::mat x(N, T, arma::fill::zeros);
 
   // cash on hand constraint in the first period
-  x.col(0) = init_a * R / (G(0) * N_shock.col(0)) + U_shock.col(0);
+  x.col(0) = init_x * R / (N_shock.col(0)) + U_shock.col(0);
 
   // consumption over time
   arma::mat c(N, T, arma::fill::zeros);
 
   for(uint t = 0; t < T; t++) {
-
-    // consumption for each period
-    c.col(t) = consume(x.col(t), x_grid, cr, t);
-
     // assets we have access to next period
     // in last period we don't need to track this
     // this is eq 4 of gourinchas parker
     if(t < T - 1) {
+      // consumption for each period
+      c.col(t) = consume(x.col(t), x_grid, cr, t);
+
       x.col(t + 1) =
         (x.col(t) - c.col(t)) * R / (G(t) * N_shock.col(t + 1)) +
         U_shock.col(t + 1);
+    } else {
+      c.col(t) = gamma_0 + gamma_1 * x.col(t);
     }
   }
 

@@ -4,19 +4,15 @@
 \alias{consume}
 \title{Consume out of cash on hand}
 \usage{
-consume(Y, A, P, x_grid, cr, t, R)
+consume(x, x_grid, cr, t)
 }
 \arguments{
-\item{Y}{labor income}
+\item{x}{cash on hand per unit of permanent income}
 
-\item{A}{assets}
-
-\item{P}{permanent income for scaling cash on hand}
+\item{x_grid}{grid we are using for linear interpolation}
 
 \item{cr}{optimal consumption rule
 solved for with consumption_rule function}
-
-\item{R}{gross return on assets}
 }
 \description{
 Consume out of cash on hand

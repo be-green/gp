@@ -8,14 +8,15 @@ simulate_lifecycle(
   N,
   T,
   x_grid,
-  P_init,
+  N_shock,
+  U_shock,
+  P,
+  init_x,
   G,
   sigma_n,
   sigma_u,
   gamma_0,
   gamma_1,
-  mu_a,
-  sigma_a,
   R,
   p_noinc,
   beta,
@@ -27,15 +28,17 @@ simulate_lifecycle(
 
 \item{T}{number of time periods}
 
+\item{x_grid}{grid of permanent income we use for consumption rule}
+
+\item{N_shock}{matrix of permanent income shocks}
+
+\item{U_shock}{matrix of temporary income shocks}
+
 \item{G}{growth of permanent income}
 
 \item{sigma_n}{sd of permanent income}
 
 \item{sigma_u}{sd temporary income shocks}
-
-\item{mu_a}{average log starting assets}
-
-\item{sigma_a}{sd of log starting assets}
 
 \item{R}{gross return on assets}
 
@@ -44,6 +47,10 @@ simulate_lifecycle(
 \item{beta}{time discount factor}
 
 \item{rho}{CRRA risk aversion}
+
+\item{mu_a}{average log starting assets}
+
+\item{sigma_a}{sd of log starting assets}
 }
 \description{
 Simulate consumption / savings lifecycle problem
