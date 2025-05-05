@@ -7,6 +7,7 @@
 consumption_rule(
   x,
   G,
+  v,
   sigma_n,
   sigma_u,
   gamma_0,
@@ -20,7 +21,9 @@ consumption_rule(
 \arguments{
 \item{x}{cash on hand grid}
 
-\item{G}{permanent income growth rate}
+\item{G}{time-varying permanent income growth rate}
+
+\item{v}{time-varying family size}
 
 \item{sigma_n}{standard deviation of log permanent income}
 
@@ -33,6 +36,8 @@ consumption_rule(
 \item{R}{risk free rate}
 
 \item{beta}{time discount factor}
+
+\item{rho}{CRRA risk aversion}
 
 \item{T}{number of years}
 }

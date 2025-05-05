@@ -11,7 +11,9 @@ consume(x, x_grid, cr, t)
 
 \item{x_grid}{grid we are using for linear interpolation}
 
-\item{cr}{optimal consumption rule
+\item{cr}{optimal consumption rule}
+
+\item{t}{integer indicating time period to reference for consumption
 solved for with consumption_rule function}
 }
 \description{

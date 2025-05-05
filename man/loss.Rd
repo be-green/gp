@@ -2,20 +2,20 @@
 % Please edit documentation in R/helpers.R
 \name{loss}
 \alias{loss}
-\title{Solve model given parameters
-gamma_0 intercept for retirement consumption
-gamma_1 consumption in retirement as a linear function of
-assets
-beta discount factor
-rho risk aversion}
+\title{Solve model given parameters}
 \usage{
 loss(gamma_0, gamma_1, beta, rho)
 }
+\arguments{
+\item{gamma_0}{intercept for retirement consumption}
+
+\item{gamma_1}{consumption in retirement as a linear function of
+assets}
+
+\item{beta}{discount factor}
+
+\item{rho}{risk aversion}
+}
 \description{
 Solve model given parameters
-gamma_0 intercept for retirement consumption
-gamma_1 consumption in retirement as a linear function of
-assets
-beta discount factor
-rho risk aversion
 }

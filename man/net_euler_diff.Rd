@@ -16,7 +16,9 @@ net_euler_diff(
   R,
   p_noinc,
   beta,
-  rho
+  rho,
+  v_t,
+  v_tp1
 )
 }
 \arguments{

@@ -157,8 +157,8 @@ void gh_quadrature(double mu_n, double sigma_n,
 //' Marginal utility
 //' @param c consumption
 //' @param rho risk aversion
-arma::mat u_prime(arma::mat c, double rho) {
- arma::mat mu = pow(c, -rho);
+arma::mat u_prime(arma::mat c, double rho, double v) {
+ arma::mat mu = v * pow(c, -rho);
  return mu;
 }
 
@@ -188,7 +188,9 @@ arma::vec net_euler_diff(arma::vec c_now,
                          double R,
                          double p_noinc,
                          double beta,
-                         double rho) {
+                         double rho,
+                         double v_t,
+                         double v_tp1) {
 
  arma::mat x_minus_c_now = repmat(x - c_now, 1, const_scale_coh.n_cols);
  arma::mat c_next_mat = repmat(c_next, 1, const_scale_coh.n_cols);
@@ -206,13 +208,13 @@ arma::vec net_euler_diff(arma::vec c_now,
    const_scale_consump;
 
  // marginal utility for each state / consumption pair
- arma::mat noincome_mu = u_prime(noincome_consumption_matrix, rho);
- arma::mat income_mu = u_prime(income_consumption_matrix, rho);
+ arma::mat noincome_mu = u_prime(noincome_consumption_matrix, rho, v_tp1);
+ arma::mat income_mu = u_prime(income_consumption_matrix, rho, v_tp1);
 
  // let's integrate into a column vector
  arma::vec e_mu_tp1 = p_noinc * (noincome_mu * weights) +
    (1 - p_noinc) * (income_mu * weights);
- arma::vec mu_t = u_prime(c_now, rho);
+ arma::vec mu_t = u_prime(c_now, rho, v_t);
  arma::vec euler_diff = mu_t - beta * R * e_mu_tp1;
  return euler_diff;
 }
@@ -252,7 +254,9 @@ arma::vec solve_euler(arma::vec c_next_grid,
                      double sigma_u,
                      double p_noinc,
                      double beta,
-                     double rho) {
+                     double rho,
+                     double v_t,
+                     double v_tp1) {
 
  // both shocks are mean zero
  // so change of variables has mu 0
@@ -284,7 +288,7 @@ arma::vec solve_euler(arma::vec c_next_grid,
                                    const_scale_consump,
                                    weights,
                                    R, p_noinc,
-                                   beta, rho);
+                                   beta, rho, v_t, v_tp1);
    return diff;
  };
 
@@ -296,18 +300,21 @@ arma::vec solve_euler(arma::vec c_next_grid,
 
 //' Get full consumption rule
 //' @param x cash on hand grid
+//' @param G time-varying permanent income growth rate
+//' @param v time-varying family size
 //' @param sigma_n standard deviation of log permanent income
 //' @param sigma_u standard deviation of log transitory income
 //' @param gamma_0 intercept of retirement MPC
 //' @param gamma_1 slope of retirement MPC in cash on hand
 //' @param R risk free rate
-//' @param G permanent income growth rate
 //' @param T number of years
 //' @param beta time discount factor
+//' @param rho CRRA risk aversion
 //' @export
 // [[Rcpp::export]]
 arma::mat consumption_rule(arma::vec& x,
                            arma::vec& G,
+                           arma::vec& v,
                            double sigma_n,
                            double sigma_u,
                            double gamma_0,
@@ -336,7 +343,9 @@ arma::mat consumption_rule(arma::vec& x,
                  sigma_u,
                  p_noinc,
                  beta,
-                 rho);
+                 rho,
+                 v(t - 1), // family size currently
+                 v(t)); // next family size
  }
  return c;
 }
@@ -437,6 +446,7 @@ Rcpp::List simulate_income(
 //' @param x cash on hand per unit of permanent income
 //' @param x_grid grid we are using for linear interpolation
 //' @param cr optimal consumption rule
+//' @param t integer indicating time period to reference for consumption
 //' solved for with consumption_rule function
 //' @details This computes consumption given income
 //' assets and return on assets by first computing cash
@@ -462,6 +472,7 @@ arma::vec consume(arma::vec x,
 //' @param N_shock matrix of permanent income shocks
 //' @param U_shock matrix of temporary income shocks
 //' @param G growth of permanent income
+//' @param v time-varying family size
 //' @param sigma_n sd of permanent income
 //' @param sigma_u sd temporary income shocks
 //' @param mu_a average log starting assets
@@ -481,6 +492,7 @@ Rcpp::List simulate_lifecycle(
   arma::mat& P,
   arma::vec& init_x,
   arma::vec& G,
+  arma::vec& v,
   double sigma_n,
   double sigma_u,
   double gamma_0,
@@ -493,7 +505,7 @@ Rcpp::List simulate_lifecycle(
 
   // consumption rule
   arma::mat cr = consumption_rule(
-    x_grid, G,
+    x_grid, G, v,
     sigma_n, sigma_u,
     gamma_0, gamma_1,
     R, p_noinc,
@@ -510,7 +522,7 @@ Rcpp::List simulate_lifecycle(
   // consumption over time
   arma::mat c(N, T, arma::fill::zeros);
 
-  for(uint t = 0; t < T; t++) {
+  for(int t = 0; t < T; t++) {
     // assets we have access to next period
     // in last period we don't need to track this
     // this is eq 4 of gourinchas parker

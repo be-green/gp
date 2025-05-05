@@ -13,11 +13,11 @@ create_coh_grid = function(x_max, x_int, n_points) {
 }
 
 #' Solve model given parameters
-#' gamma_0 intercept for retirement consumption
-#' gamma_1 consumption in retirement as a linear function of
+#' @param gamma_0 intercept for retirement consumption
+#' @param gamma_1 consumption in retirement as a linear function of
 #' assets
-#' beta discount factor
-#' rho risk aversion
+#' @param beta discount factor
+#' @param rho risk aversion
 #' @export
 loss = function(gamma_0,
                 gamma_1,
@@ -37,6 +37,12 @@ loss = function(gamma_0,
 
 }
 
+#' Simulate consumption given parameters
+#' @param gamma_0 intercept of retirement savings
+#' @param gamma_1 slope of portion of permanent income used in retirement savings
+#' @param beta time discount factor
+#' @param rho risk aversion for CRRA
+#' @export
 sim_given_params = function(gamma_0,
                             gamma_1,
                             beta,
@@ -82,6 +88,7 @@ sim_given_params = function(gamma_0,
     P,
     init_x,
     G,
+    f, # family size from GP paper based on polynomials
     sigma_n,
     sigma_u,
     gamma_0,
@@ -94,6 +101,17 @@ sim_given_params = function(gamma_0,
   c_out
 }
 
+#' Solve the model given initial parameters
+#' @param init initial vector of moments to use for the solution
+#' @param ... other parameters to pass to the optimizer
+#' @details Right now this assumes an identity weight matrix,
+#' which is not what the authors use. They use optimal GMM, which
+#' iterates back and forth on the weight matrix and the optimal
+#' solution vector via a plugin estimator for the variance /
+#' covariance matrix. Right now that is still to-do, but
+#' adding a weight matrix to the loss function should be
+#' a simple tweak.
+#' @export
 solve_model = function(init, ...) {
   optim(init, \(theta)  {
     loss(
@@ -103,5 +121,5 @@ solve_model = function(init, ...) {
       theta[4]
     )
   }, lower = c(0.0001, 0.0001, 0.7, 0.2),
-  upper = c(0.8, 0.8, 1, 10), method = "L-BFGS-B", ...)
+  upper = c(0.8, 0.8, 0.999, 10), method = "L-BFGS-B", ...)
 }

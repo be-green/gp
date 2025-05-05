@@ -3,5 +3,5 @@ CXX = g++
 CXX_STD = CXX14
 CXX14 = g++
 PKG_CXX = g++
-PKG_CXXFLAGS = -O3 -Wall -pedantic -std=c++14 -mtune=native -pipe -Xclang -fopenmp
+PKG_CXXFLAGS = -O3 -Wall -pedantic -std=c++14 -mtune=native -pipe -fopenmp
 PKG_LIBS = -lomp

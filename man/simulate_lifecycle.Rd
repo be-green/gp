@@ -13,6 +13,7 @@ simulate_lifecycle(
   P,
   init_x,
   G,
+  v,
   sigma_n,
   sigma_u,
   gamma_0,
@@ -35,6 +36,8 @@ simulate_lifecycle(
 \item{U_shock}{matrix of temporary income shocks}
 
 \item{G}{growth of permanent income}
+
+\item{v}{time-varying family size}
 
 \item{sigma_n}{sd of permanent income}
 

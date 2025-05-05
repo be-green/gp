@@ -73,8 +73,8 @@ gh_quadrature <- function(mu_n, sigma_n, mu_u, sigma_u, nodes2D, weights2D) {
 #' @param beta discount factor
 #' @param rho CRRA risk aversion parameter
 #' @export
-net_euler_diff <- function(c_now, x, c_next, const_scale_coh, const_add_coh, const_scale_consump, weights, R, p_noinc, beta, rho) {
-    .Call(`_gp_net_euler_diff`, c_now, x, c_next, const_scale_coh, const_add_coh, const_scale_consump, weights, R, p_noinc, beta, rho)
+net_euler_diff <- function(c_now, x, c_next, const_scale_coh, const_add_coh, const_scale_consump, weights, R, p_noinc, beta, rho, v_t, v_tp1) {
+    .Call(`_gp_net_euler_diff`, c_now, x, c_next, const_scale_coh, const_add_coh, const_scale_consump, weights, R, p_noinc, beta, rho, v_t, v_tp1)
 }
 
 #' Function just for testing quadrature
@@ -84,17 +84,19 @@ nw <- function(sigma_n, sigma_u) {
 
 #' Get full consumption rule
 #' @param x cash on hand grid
+#' @param G time-varying permanent income growth rate
+#' @param v time-varying family size
 #' @param sigma_n standard deviation of log permanent income
 #' @param sigma_u standard deviation of log transitory income
 #' @param gamma_0 intercept of retirement MPC
 #' @param gamma_1 slope of retirement MPC in cash on hand
 #' @param R risk free rate
-#' @param G permanent income growth rate
 #' @param T number of years
 #' @param beta time discount factor
+#' @param rho CRRA risk aversion
 #' @export
-consumption_rule <- function(x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho) {
-    .Call(`_gp_consumption_rule`, x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho)
+consumption_rule <- function(x, G, v, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho) {
+    .Call(`_gp_consumption_rule`, x, G, v, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho)
 }
 
 #' Simulate N asset draws from log normal distribution
@@ -122,6 +124,7 @@ simulate_income <- function(N, T, P_init, G, sigma_n, sigma_u, p_noinc) {
 #' @param x cash on hand per unit of permanent income
 #' @param x_grid grid we are using for linear interpolation
 #' @param cr optimal consumption rule
+#' @param t integer indicating time period to reference for consumption
 #' solved for with consumption_rule function
 #' @details This computes consumption given income
 #' assets and return on assets by first computing cash
@@ -139,6 +142,7 @@ consume <- function(x, x_grid, cr, t) {
 #' @param N_shock matrix of permanent income shocks
 #' @param U_shock matrix of temporary income shocks
 #' @param G growth of permanent income
+#' @param v time-varying family size
 #' @param sigma_n sd of permanent income
 #' @param sigma_u sd temporary income shocks
 #' @param mu_a average log starting assets
@@ -148,7 +152,7 @@ consume <- function(x, x_grid, cr, t) {
 #' @param beta time discount factor
 #' @param rho CRRA risk aversion
 #' @export
-simulate_lifecycle <- function(N, T, x_grid, N_shock, U_shock, P, init_x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho) {
-    .Call(`_gp_simulate_lifecycle`, N, T, x_grid, N_shock, U_shock, P, init_x, G, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho)
+simulate_lifecycle <- function(N, T, x_grid, N_shock, U_shock, P, init_x, G, v, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho) {
+    .Call(`_gp_simulate_lifecycle`, N, T, x_grid, N_shock, U_shock, P, init_x, G, v, sigma_n, sigma_u, gamma_0, gamma_1, R, p_noinc, beta, rho)
 }
 
